@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gzng Archive System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rudaw:wght@400;700;900&family=Noto+Sans+Arabic:wght@300;400;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+       :root {
+            --bg-body: #f0f2f5; --bg-glass: rgba(255, 255, 255, 0.95); --bg-nav: rgba(255, 255, 255, 0.9);
+            --bg-card: #ffffff; --text-main: #1e293b; --text-light: #64748b;
+            --primary: #6366f1; --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08); --border: 1px solid rgba(0, 0, 0, 0.05); --radius: 16px;
+            --font-main: 'Noto Sans Arabic', 'Rudaw', sans-serif;
+        }
+        [data-theme="dark"] {
+            --bg-body: #0f172a; --bg-glass: rgba(30, 41, 59, 0.9); --bg-nav: rgba(15, 23, 42, 0.9);
+            --bg-card: #1e293b; --text-main: #f1f5f9; --text-light: #94a3b8;
+            --primary: #818cf8; --primary-gradient: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3); --border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        html[lang="en"] { --font-main: 'Roboto', sans-serif; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: var(--font-main); background-color: var(--bg-body); min-height: 100vh; color: var(--text-main); overflow-x: hidden; padding-top: 80px; padding-bottom: 40px; transition: background-color 0.3s ease; }
+        
+        .glass { background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+        button { cursor: pointer; font-family: inherit; border: none; background: none; }
+
+        .navbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: var(--bg-nav); backdrop-filter: blur(15px); border-bottom: var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-brand { font-size: 1.3em; font-weight: 900; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 10px; }
+        .nav-logo-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; object-fit: contain; background: transparent; }
+        .nav-right { display: flex; align-items: center; gap: 10px; }
+        
+        .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2em; transition: 0.3s; color: var(--text-main); font-weight: bold; border: 1px solid transparent; }
+        .icon-btn:hover { background: rgba(128,128,128,0.1); border-color: var(--border); }
+
+        .lang-dropdown { position: relative; }
+        .lang-menu {
+            position: absolute; top: 120%; left: -10px; background: var(--bg-card); border: var(--border); border-radius: 12px;
+            box-shadow: var(--shadow); width: 160px; display: none; flex-direction: column; overflow: hidden; z-index: 2000;
+        }
+        html[dir="ltr"] .lang-menu { right: -10px; left: auto; }
+        .lang-menu.show { display: flex; animation: fadeIn 0.2s ease; }
+        .lang-item { padding: 12px 15px; text-align: start; cursor: pointer; transition: 0.2s; font-size: 0.95em; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .lang-item:hover { background: rgba(128,128,128,0.1); color: var(--primary); }
+
+        .admin-link-btn { background: rgba(128,128,128,0.1); color: var(--text-main); padding: 8px 15px; border-radius: 50px; font-weight: bold; font-size: 0.9em; display: flex; align-items: center; gap: 6px; transition: 0.3s; }
+        .admin-link-btn:hover { background: var(--primary); color: white; }
+
+        .container { max-width: 1200px; margin: 0 auto; width: 95%; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-pills { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; margin-top: 10px; flex-wrap: wrap; }
+        .pill { padding: 10px 25px; border-radius: 50px; font-weight: bold; color: var(--text-light); background: var(--bg-card); border: var(--border); transition: 0.3s; display: flex; align-items: center; gap: 5px;}
+        .pill.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transform: scale(1.05); border-color: transparent; }
+
+        /* ====== بەشی چاککراوی ڕاپۆرت و لۆگۆ ====== */
+        .report-header { 
+            text-align: center; 
+            margin-bottom: 10px !important; 
+            padding-bottom: 8px !important; 
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .report-header img { 
+            height: 55px !important; /* لۆگۆکە زۆر بچووک کرایەوە */
+            margin-bottom: 5px !important; 
+            object-fit: contain;
+        }
+        .report-header h2 { 
+            font-size: 16px !important; 
+            margin: 2px 0 !important; 
+        }
+        .report-header p { 
+            font-size: 11px !important; 
+            margin: 0 !important; 
+            color: #64748b;
+        }
+
+        .report-footer {
+            margin-top: 10px !important;
+            padding-top: 8px !important;
+            border-top: 2px solid #f1f5f9;
+            text-align: center;
+            font-size: 11px !important;
+        }
+
+        .a4-page { 
+            width: 210mm; 
+            min-height: 297mm; 
+            background: white; 
+            padding: 10mm 15mm !important; /* کەمکردنەوەی بۆشایی دەوری کاغەزەکە */
+            color: black; 
+            direction: rtl; 
+            text-align: right; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+        }
+
+        /* ستایلی نوێ بۆ تێبینییەکان بۆ ئەوەی چەند دێڕ بێت */
+        #inpNotes {
+            width: 100%;
+            min-height: 60px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+        }
+        /* ========================================= */
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .card { background: var(--bg-card); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); border: var(--border); display: flex; flex-direction: column; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        
+        .card-img-grid { display: grid; grid-template-columns: 1fr 1fr; height: 180px; width: 100%; gap: 1px; background: #e2e8f0; flex-shrink: 0; }
+        .card-img-grid img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .card-body { padding: 15px; flex-grow: 1; background: var(--bg-card); position: relative; z-index: 2; }
+        .card-title { font-weight: 800; font-size: 1.1em; margin-bottom: 8px; color: var(--text-main); }
+        .card-info { font-size: 0.85em; color: var(--text-light); display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.2s; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .editor-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; height: 90vh; }
+        .editor-toolbar { background: #1e293b; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .paper-area { background: #334155; padding: 20px; border-radius: 15px; flex-grow: 1; overflow: auto; display: flex; justify-content: center; }
+        
+        html[dir="ltr"] .a4-page { text-align: left; direction: ltr; }
+        
+      /* ===============================
+   HEADER ـی ڕاپۆرت (فشرده‌)
+================================ */
+.p-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid black;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+}
+
+.p-header h1 {
+    font-size: 18px !important;
+    margin: 0 !important;
+    line-height: 1.2;
+}
+
+.p-header p {
+    font-size: 11px;
+    margin: 2px 0 0 !important;
+    color: #555;
+}
+
+.p-header img {
+    height: 55px !important;
+    width: auto !important;
+    max-width: 120px !important;
+    object-fit: contain;
+}
+
+/* ===============================
+   فۆرمی زانیاری (بابەت / لیژنە / مامۆستا / بەروار)
+================================ */
+.p-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;                 /* کەمتر */
+    background: #f8fafc;
+    padding: 10px;             /* کەمتر */
+    border: 1px solid #e2e8f0;
+    margin-bottom: 12px;
+}
+
+.p-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px dashed #cbd5e1;
+    background: transparent;
+    font-weight: bold;
+    padding: 2px;
+    font-family: inherit;
+}
+
+/* ===============================
+   بەشی وێنەکان (جێگیر و نەتێکچوو)
+================================ */
+.p-images {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+/* وێنەی پان (Landscape) */
+.p-images.landscape {
+    grid-template-columns: 1fr 1fr;
+}
+
+.p-images.landscape .slot {
+    height: 180px;   /* بەرزی جێگیر */
+}
+
+/* وێنەی درێژ (Portrait) */
+.p-images.portrait {
+    grid-template-columns: 1fr 1fr;
+}
+
+.p-images.portrait .slot {
+    height: 280px;   /* بەرزی جێگیر */
+}
+
+/* ===============================
+   شوێنی وێنە
+================================ */
+.slot {
+    background: #f1f5f9;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* گرنگ */
+}
+
+/* وێنە → نە پان بێت، نە درێژ بێت */
+.slot img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+        
+        .controls { position: absolute; bottom: 5px; display: flex; gap: 5px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 20px; opacity: 0; transition: 0.2s; }
+        .slot:hover .controls { opacity: 1; }
+        .c-btn { width: 25px; height: 25px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        @media print {
+            body * { visibility: hidden; } .a4-page, .a4-page * { visibility: visible; }
+            .a4-page { position: absolute; left: 0; top: 0; margin: 0; padding: 10mm; width: 210mm; height: 297mm; }
+            .controls, .editor-toolbar, .modal-overlay { display: none !important; }
+        }
+        @media (max-width: 768px) { .nav-brand span { font-size: 0.9em; } .a4-page { width: 100%; height: auto; aspect-ratio: 210/297; padding: 5mm; } .p-images.landscape .slot { height: 120px; } }
+        /* --- چاککردنی قەبارە و شێوەی لۆگۆ --- */
+.p-header img {
+    height: 110px !important;    /* لۆگۆکە گەورە دەکات */
+    width: auto !important;      /* ناهێڵێت پان ببێتەوە */
+    object-fit: contain !important; /* وێنەکە وەک خۆی دەهێڵێتەوە */
+    max-width: 250px !important; 
+    display: block !important;
+}
+
+.p-header {
+    display: flex !important;
+    align-items: center !important; /* لۆگۆ و نووسینەکە دەخاتە یەک ئاست */
+    justify-content: space-between !important;
+}
+ /* --- ستایل بۆ دوگمەی بینینی ڕاپۆرت لە ناو لیستەکە --- */
+.btn-card {
+    background-color: #2563eb !important; /* ڕەنگی شین */
+    color: white !important;              /* ڕەنگی نووسین */
+    padding: 10px 20px !important;        /* کەمێک گەورەتر بۆ ئەوەی جوان بێت */
+    border-radius: 8px !important;        /* خڕکردنی گۆشەکان */
+    border: none !important;
+    font-family: 'Rudaw', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2) !important; /* سێبەرێکی شین */
+    width: 100% !important; /* بۆ ئەوەی پانی کارتەکە بگرێت */
+    margin-top: 10px !important;
+}
+
+.btn-card:hover {
+    background-color: #1d4ed8 !important; /* ڕەنگەکە تۆختر دەبێت لە کاتی هۆڤەر */
+    transform: translateY(-2px) !important; /* کەمێک بەرز دەبێتەوە */
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3) !important;
+}
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="https://i.ibb.co/5hgx3xgZ/logo-gzng.png" class="nav-logo-icon">
+            <span data-i18n="app_title">ئەرشیفی گزنگ</span>
+        </div>
+        <div class="nav-right">
+            <div class="lang-dropdown">
+                <button onclick="toggleLangMenu()" class="icon-btn">🌐</button>
+                <div id="langMenu" class="lang-menu">
+                    <div class="lang-item" onclick="setLang('ku')"><span>🏳️</span> کوردی</div>
+                    <div class="lang-item" onclick="setLang('en')"><span>🇺🇸</span> English</div>
+                    <div class="lang-item" onclick="setLang('ar')"><span>🇮🇶</span> عربي</div>
+                </div>
+            </div>
+            <button onclick="toggleTheme()" class="icon-btn" id="themeIcon">🌙</button>
+            <button id="adminBtn" class="admin-link-btn"><span>🔑</span> <span data-i18n="btn_admin" class="i18n-text">ئەدمین</span></button>
+        </div>
+    </nav>
+
+    <div id="mainContent" style="display:block;">
+        <div class="container">
+            <div class="nav-pills">
+                <button onclick="switchView('archive')" class="pill active" id="btn-archive" data-i18n="tab_archive">ئەرشیف</button>
+                <button onclick="switchView('teachers')" class="pill" id="btn-teachers" data-i18n="tab_teachers">مامۆستایان</button>
+                <button onclick="window.open('https://gzng-school.vercel.app/', '_blank')" class="pill" style="background: #ecfdf5; color: #059669; border-color: #10b981;">
+                    📅 <span data-i18n="btn_schedule">خشتەی ڕۆژانە</span>
+                </button>
+            </div>
+            
+            <div id="archiveControls">
+                <div class="search-area"><input type="text" class="search-input" id="searchBox" placeholder="گەڕان..."></div>
+                <div style="text-align:center;"><button onclick="openEditor()" class="add-activity-btn" id="btnAddActivity"><span style="margin:0 5px;">➕</span> <span data-i18n="btn_add_activity">زیادکردنی چالاکی نوێ</span></button></div>
+           <button onclick="window.open('https://stellar-madeleine-e27166.netlify.app/', '_blank')" style="flex:1; padding:12px; border-radius:12px; font-weight:700; background-color: #4338ca; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <i class="fas fa-briefcase"></i> <span>هەگبە</span>
+    </button>
+</div>
+            <div id="filterHeader" class="filter-header">
+                <div style="display:flex; align-items:center; gap:15px;"><div id="filterAvatarContainer"></div><h2 id="filterName" style="font-size:1.2em; margin:0;"></h2></div>
+                <button onclick="clearFilter()" style="color:#ef4444; background:rgba(239, 68, 68, 0.1); padding:8px 15px; border-radius:10px;" data-i18n="btn_back">❌ گەڕانەوە</button>
+            </div>
+            <div id="activitiesGrid" class="grid"></div>
+            <div id="teachersGrid" class="teacher-grid" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="adminAuthModal" class="modal-overlay" style="z-index:9000;">
+        <div class="glass" style="background:white; padding:30px; width:90%; max-width:350px; text-align:center;">
+            <h3 data-i18n="admin_login_title">بەڕێوەبەر</h3>
+            <input type="email" id="adminEmail" placeholder="Email" class="search-input" style="margin:15px 0 10px; border:1px solid #ddd;">
+            <input type="password" id="adminPass" placeholder="Password" class="search-input" style="margin-bottom:20px; border:1px solid #ddd;">
+            <button onclick="loginAdmin()" class="admin-link-btn" style="width:100%; justify-content:center; background:var(--primary); color:white;" data-i18n="btn_login">چوونەژوورەوە</button>
+            <button onclick="document.getElementById('adminAuthModal').classList.remove('active')" style="margin-top:15px; color:#666;" data-i18n="btn_close">داخستن</button>
+        </div>
+    </div>
+
+    <div id="adminDashboard" class="admin-dashboard">
+        <div class="admin-nav">
+            <h2 style="display:flex; align-items:center; gap:10px;">⚙️ <span data-i18n="dashboard">داشبۆرد</span> <span style="font-size:0.6em; background:#334155; padding:2px 8px; border-radius:10px;" data-i18n="btn_admin">بەڕێوەبەر</span></h2>
+            <div style="display:flex; gap:10px;"><button onclick="closeAdminDashboard()" style="background:#3b82f6; color:white; padding:8px 15px; border-radius:8px;" data-i18n="btn_back_site">🔙 گەڕانەوە</button><button onclick="logoutAdmin()" style="background:#ef4444; color:white; padding:8px 15px; border-radius:8px;" data-i18n="btn_logout">دەرچوون</button></div>
+        </div>
+        <div class="container" style="padding-top:30px;">
+            <div class="grid" style="margin-bottom:30px;">
+                <div class="card" style="padding:20px; text-align:center;"><div style="font-size:2.5em; font-weight:900; color:var(--primary);" id="statActivities">0</div><p data-i18n="stat_activity">چالاکی</p></div>
+                <div class="card" style="padding:20px; text-align:center;"><div style="font-size:2.5em; font-weight:900; color:var(--primary);" id="statTeachers">0</div><p data-i18n="stat_teacher">مامۆستا</p></div>
+            </div>
+            <div class="nav-pills">
+                <button onclick="switchAdminTab('activities')" id="tab-admin-acts" class="pill active" data-i18n="manage_activities">بەڕێوەبردنی چالاکییەکان</button>
+                <button onclick="switchAdminTab('teachers')" id="tab-admin-teach" class="pill" data-i18n="manage_teachers">بەڕێوەبردنی مامۆستایان</button>
+            </div>
+            <div id="adminActivitiesView" class="glass" style="padding:20px; background:var(--bg-card);"><table style="width:100%; border-collapse:collapse;"><thead><tr style="text-align:inherit; border-bottom:2px solid #eee;"><th style="padding:15px;" data-i18n="lbl_subject">بابەت</th><th data-i18n="lbl_teacher">مامۆستا</th><th data-i18n="lbl_action">کردار</th></tr></thead><tbody id="adminActivitiesTable"></tbody></table></div>
+            <div id="adminTeachersView" class="glass" style="padding:20px; display:none; background:var(--bg-card);"><button onclick="openAddTeacherModal()" class="admin-link-btn" style="background:var(--primary); color:white; margin-bottom:20px;">➕ <span data-i18n="btn_add_teacher">زیادکردنی مامۆستا</span></button><div id="adminTeachersGrid" class="teacher-grid"></div></div>
+        </div>
+    </div>
+
+    <div id="editorModal" class="modal-overlay">
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <button onclick="closeEditor()" style="color:#ef4444; font-weight:bold;" data-i18n="btn_close">داخستن</button>
+                <div style="display:flex; gap:10px;"><button onclick="setLayout('landscape')" style="background:#334155; padding:5px 10px; border-radius:5px;" data-i18n="layout_landscape">وێنەی پان</button><button onclick="setLayout('portrait')" style="background:#334155; padding:5px 10px; border-radius:5px;" data-i18n="layout_portrait">وێنەی درێژ</button></div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="downloadJPEG()" style="background:white; color:black; padding:5px 10px; border-radius:5px;">⬇️ JPG</button>
+                    <button onclick="window.print()" style="background:white; color:black; padding:5px 10px; border-radius:5px;">🖨️</button>
+                    <button onclick="saveToArchive()" id="btnSaveArchive" style="background:var(--primary); color:white; padding:5px 15px; border-radius:5px;" data-i18n="btn_save">💾 سەیڤ</button>
+                </div>
+            </div>
+            <div class="paper-area">
+                <div class="a4-page" id="reportPaper">
+                    <div class="p-header">
+                        <div><h1 style="font-size:24px; color:black; margin:0;" data-i18n="school_name">قوتابخانەی گزنگ</h1><p style="color:#666; margin-top:5px;" data-i18n="report_form">فۆرمی ڕاپۆرتی چالاکی</p></div>
+                        <img src="https://i.ibb.co/5hgx3xgZ/logo-gzng.png" style="width:80px; height:80px; object-fit:contain;">
+                    </div>
+                    <div class="p-form">
+                        <div><label style="font-size:12px; color:#666;" data-i18n="lbl_subject">بابەت</label><input id="inpName" class="p-input"></div>
+                        <div><label style="font-size:12px; color:#666;" data-i18n="lbl_committee">لیژنە</label><input id="inpComm" class="p-input"></div>
+                        <div><label style="font-size:12px; color:#666;" data-i18n="lbl_teacher">مامۆستا</label><select id="inpTeacher" class="p-input" style="background:white;"><option value="">...</option></select></div>
+                        <div><label style="font-size:12px; color:#666;" data-i18n="lbl_date">بەروار</label><input id="inpDate" type="date" class="p-input"></div>
+                    </div>
+                   <textarea id="inpNotes"
+ style="
+ width:100%;
+ height:120px;          /* بەرزی جێگیر */
+ max-height:120px;
+ overflow-y:auto;       /* scroll */
+ border:1px solid #ddd;
+ padding:10px;
+ resize:none;
+ font-family:inherit;
+ margin-bottom:10px;
+ box-sizing:border-box;"
+ placeholder="..."></textarea>
+
+                    <div id="imgContainer" class="p-images landscape">
+                        <div class="slot" id="slot0" onmousedown="startDrag(event, 0)" ontouchstart="startDrag(event, 0)"><img id="img0"><div class="controls"><div class="c-btn" onclick="triggerFile(0)">📂</div><div class="c-btn" onclick="adjustZoom(0, 0.1)">+</div><div class="c-btn" onclick="adjustZoom(0, -0.1)">-</div></div></div>
+                        <div class="slot" id="slot1" onmousedown="startDrag(event, 1)" ontouchstart="startDrag(event, 1)"><img id="img1"><div class="controls"><div class="c-btn" onclick="triggerFile(1)">📂</div><div class="c-btn" onclick="adjustZoom(1, 0.1)">+</div><div class="c-btn" onclick="adjustZoom(1, -0.1)">-</div></div></div>
+                        <div class="slot" id="slot2" onmousedown="startDrag(event, 2)" ontouchstart="startDrag(event, 2)"><img id="img2"><div class="controls"><div class="c-btn" onclick="triggerFile(2)">📂</div><div class="c-btn" onclick="adjustZoom(2, 0.1)">+</div><div class="c-btn" onclick="adjustZoom(2, -0.1)">-</div></div></div>
+                        <div class="slot" id="slot3" onmousedown="startDrag(event, 3)" ontouchstart="startDrag(event, 3)"><img id="img3"><div class="controls"><div class="c-btn" onclick="triggerFile(3)">📂</div><div class="c-btn" onclick="adjustZoom(3, 0.1)">+</div><div class="c-btn" onclick="adjustZoom(3, -0.1)">-</div></div></div>
+                    </div>
+                    <div style="margin-top:auto; text-align:center; font-size:12px; color:#999; border-top:1px solid #eee; padding-top:10px;" data-i18n="school_footer">قوتابخانەی گزنگی ئینگلیزی ناحکومی</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;">
+    <input type="file" id="editTeacherFile" style="display:none;" accept="image/*" onchange="previewTeacherImage(this)">
+
+
+    <div id="teacherEditModal" class="modal-overlay" style="z-index:9200;">
+        <div class="glass" style="background:white; padding:30px; width:90%; max-width:400px; border-radius:20px;">
+            <h3 style="margin-bottom:20px;" id="teacherModalTitle" data-i18n="teacher_info">زانیاری مامۆستا</h3>
+            <input type="hidden" id="editTeacherId">
+            <label style="font-size:0.9em; color:gray;" data-i18n="lbl_name">ناو</label>
+            <input id="editTeacherName" type="text" class="search-input" style="border:1px solid #ddd; margin:5px 0 15px; padding:10px;">
+            <label style="font-size:0.9em; color:gray;" data-i18n="lbl_gender">ڕەگەز</label>
+            <select id="editTeacherGender" class="search-input" style="border:1px solid #ddd; margin:5px 0 15px; padding:10px;">
+                <option value="male">👨‍🏫 Male</option>
+                <option value="female">👩‍🏫 Female</option>
+            </select>
+            <label style="font-size:0.9em; color:gray;" data-i18n="lbl_photo">وێنە</label>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+                <img id="editTeacherPreview" src="" style="width:50px; height:50px; border-radius:50%; border:1px solid #ddd; object-fit:contain; display:none;">
+                <button onclick="document.getElementById('editTeacherFile').click()" class="admin-link-btn" style="background:#e0e7ff; color:blue;" data-i18n="btn_change">📷 گۆڕین</button>
+                <button onclick="removeTeacherPhoto()" class="admin-link-btn" style="background:#fee2e2; color:red;" data-i18n="btn_remove_photo">❌ سڕینەوە</button>
+            </div>
+            <button onclick="saveTeacherChanges()" class="admin-link-btn" style="width:100%; justify-content:center; background:var(--primary); color:white; padding:12px;" data-i18n="btn_save">سەیڤکردن</button>
+            <button onclick="document.getElementById('teacherEditModal').classList.remove('active')" style="margin-top:10px; width:100%; color:#666;" data-i18n="btn_close">داخستن</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc, where, writeBatch, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        
+        const IMGBB_API_KEY = "0792200cd18a10eadeeccf373d03e4f7"; 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAr_JHCa5BbM5RJ9KCp0IBom1rdAgVX4CM",
+            authDomain: "gzng-f4273.firebaseapp.com",
+            projectId: "gzng-f4273",
+            storageBucket: "gzng-f4273.firebasestorage.app",
+            messagingSenderId: "417779309632",
+            appId: "1:417779309632:web:6ed119d26baa35822cd3a5",
+            measurementId: "G-B6V0CHGQV6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const actRef = collection(db, "activities");
+        const teachRef = collection(db, "teachers");
+
+        let acts=[], teachers=[], user=null;
+        window.localFiles=[null,null,null,null]; window.currentSlot=0;
+        window.imgState={0:{s:1,x:0,y:0},1:{s:1,x:0,y:0},2:{s:1,x:0,y:0},3:{s:1,x:0,y:0}};
+        let currentFilter=null, tempTeacherFile = null, removePhotoFlag = false;
+
+        const MALE_ICON = "https://cdn-icons-png.flaticon.com/512/4042/4042356.png";
+        const FEMALE_ICON = "https://cdn-icons-png.flaticon.com/512/4042/4042422.png";
+
+        // --- TRANSLATIONS (UNCHANGED) ---
+        const translations = {
+            ku: {
+                app_title: "ئەرشیفی گزنگ", btn_admin: "ئەدمین", tab_archive: "ئەرشیف", tab_teachers: "مامۆستایان", btn_schedule: "خشتەی ڕۆژانە",
+                btn_add_activity: "زیادکردنی چالاکی نوێ", btn_back: "گەڕانەوە", dashboard: "داشبۆرد",
+                stat_activity: "چالاکی", stat_teacher: "مامۆستا", manage_activities: "بەڕێوەبردنی چالاکییەکان",
+                manage_teachers: "بەڕێوەبردنی مامۆستایان", lbl_subject: "بابەت", lbl_teacher: "مامۆستا", lbl_action: "کردار",
+                btn_add_teacher: "زیادکردنی مامۆستا", btn_back_site: "گەڕانەوە بۆ سایت", btn_logout: "دەرچوون",
+                btn_close: "داخستن", btn_save: "سەیڤ", layout_landscape: "وێنەی پان", layout_portrait: "وێنەی درێژ",
+                school_name: "قوتابخانەی گزنگ", report_form: "فۆرمی ڕاپۆرتی چالاکی", lbl_committee: "لیژنە", lbl_date: "بەروار",
+                school_footer: "قوتابخانەی گزنگی ئینگلیزی ناحکومی", teacher_info: "زانیاری مامۆستا", lbl_name: "ناو", lbl_gender: "ڕەگەز",
+                lbl_photo: "وێنە", btn_change: "گۆڕین", btn_remove_photo: "سڕینەوەی وێنە", view_report: "بینینی ڕاپۆرت",
+                secure_area: "ناوچەی پارێزراو", btn_login: "چوونەژوورەوە", error_pass: "هەڵەیە", admin_login_title: "چوونەژوورەوەی ئەدمین", search: "گەڕان..."
+            },
+            en: {
+                app_title: "Gzng Archive", btn_admin: "Admin", tab_archive: "Archive", tab_teachers: "Teachers", btn_schedule: "Daily Schedule",
+                btn_add_activity: "Add New Activity", btn_back: "Back", dashboard: "Dashboard",
+                stat_activity: "Activities", stat_teacher: "Teachers", manage_activities: "Manage Activities",
+                manage_teachers: "Manage Teachers", lbl_subject: "Subject", lbl_teacher: "Teacher", lbl_action: "Action",
+                btn_add_teacher: "Add Teacher", btn_back_site: "Back to Site", btn_logout: "Logout",
+                btn_close: "Close", btn_save: "Save", layout_landscape: "Landscape", layout_portrait: "Portrait",
+                school_name: "Gzng School", report_form: "Activity Report Form", lbl_committee: "Committee", lbl_date: "Date",
+                school_footer: "Gzng Non-Governmental English School", teacher_info: "Teacher Info", lbl_name: "Name", lbl_gender: "Gender",
+                lbl_photo: "Photo", btn_change: "Change", btn_remove_photo: "Remove Photo", view_report: "View Report",
+                secure_area: "Restricted Area", btn_login: "Login", error_pass: "Error", admin_login_title: "Admin Login", search: "Search..."
+            },
+            ar: {
+                app_title: "أرشيف غزنگ", btn_admin: "إدارة", tab_archive: "الأرشيف", tab_teachers: "المدرسين", btn_schedule: "الجدول اليومي",
+                btn_add_activity: "إضافة نشاط جديد", btn_back: "رجوع", dashboard: "لوحة التحكم",
+                stat_activity: "أنشطة", stat_teacher: "مدرسين", manage_activities: "إدارة الأنشطة",
+                manage_teachers: "إدارة المدرسين", lbl_subject: "الموضوع", lbl_teacher: "المدرس", lbl_action: "إجراء",
+                btn_add_teacher: "إضافة مدرس", btn_back_site: "رجوع للموقع", btn_logout: "خروج",
+                btn_close: "إغلاق", btn_save: "حفظ", layout_landscape: "عرضي", layout_portrait: "طولي",
+                school_name: "مدرسة غزنگ", report_form: "نموذج تقرير نشاط", lbl_committee: "اللجنة", lbl_date: "التاريخ",
+                school_footer: "مدرسة غزنگ الإنجليزية الأهلية", teacher_info: "معلومات المدرس", lbl_name: "الاسم", lbl_gender: "الجنس",
+                lbl_photo: "صورة", btn_change: "تغيير", btn_remove_photo: "حذف الصورة", view_report: "عرض التقرير",
+                secure_area: "منطقة محمية", btn_login: "دخول", error_pass: "خطأ", admin_login_title: "دخول المشرف", search: "بحث..."
+            }
+        };
+
+        // --- CORE FUNCTIONS ---
+        window.toggleLangMenu = () => {
+            const menu = document.getElementById('langMenu');
+            menu.classList.toggle('show');
+        };
+        window.onclick = (e) => {
+            if (!e.target.matches('.icon-btn') && !e.target.matches('.icon-btn *')) {
+                const menu = document.getElementById('langMenu');
+                if (menu.classList.contains('show')) menu.classList.remove('show');
+            }
+        };
+        window.setLang = (lang) => {
+            localStorage.setItem('lang', lang);
+            location.reload(); 
+        };
+        let currentLang = localStorage.getItem('lang') || 'ku';
+        document.documentElement.setAttribute('lang', currentLang);
+        document.documentElement.setAttribute('dir', currentLang === 'en' ? 'ltr' : 'rtl');
+        function t(key) { return translations[currentLang][key] || key; }
+        
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if(translations[currentLang][key]) el.innerText = translations[currentLang][key];
+        });
+        if(document.getElementById('searchBox')) document.getElementById('searchBox').placeholder = t('search');
+
+
+        window.toggleTheme = () => {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme')==='dark'?'light':'dark';
+            html.setAttribute('data-theme',next); localStorage.setItem('theme',next);
+            document.getElementById('themeIcon').innerText = next==='dark'?'☀️':'🌙';
+        };
+        const saved = localStorage.getItem('theme')||'light';
+        document.documentElement.setAttribute('data-theme',saved);
+        document.getElementById('themeIcon').innerText = saved==='dark'?'☀️':'🌙';
+
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            const btn = document.getElementById('adminBtn');
+            if(u){
+                btn.innerHTML=`<span>⚙️</span> <span data-i18n="dashboard" class="i18n-text">${t('dashboard')}</span>`; 
+                btn.style.background="var(--primary)"; btn.style.color="white"; btn.onclick=openAdminDashboard;
+            } else {
+                btn.innerHTML=`<span>🔑</span> <span data-i18n="btn_admin" class="i18n-text">${t('btn_admin')}</span>`; 
+                btn.style.background="rgba(128,128,128,0.1)"; btn.style.color="var(--text-main)"; btn.onclick=()=>document.getElementById('adminAuthModal').classList.add('active'); // چاککراو
+            }
+        });
+        window.loginAdmin=async()=>{try{await signInWithEmailAndPassword(auth,document.getElementById('adminEmail').value,document.getElementById('adminPass').value); document.getElementById('adminAuthModal').classList.remove('active');}catch(e){alert(e.message);}};
+        window.logoutAdmin=async()=>{if(confirm(t('btn_logout') + "?")){await signOut(auth); closeAdminDashboard();}};
+
+        onSnapshot(query(actRef, orderBy("date", "desc")), (s) => { acts = s.docs.map(d=>({id:d.id, ...d.data()})); renderApp(); renderAdminContent(); });
+        
+        onSnapshot(teachRef, (s) => { 
+            teachers = s.docs.map(d=>({id:d.id, ...d.data()})); 
+            teachers.sort((a, b) => {
+                return a.name.localeCompare(b.name, 'ku', { sensitivity: 'base' });
+            });
+            updateDropdown(); 
+            renderApp(); 
+            renderAdminContent(); 
+        });
+
+        function getTeacherImg(t) { if(t.photo && t.photo.length > 10) return t.photo; return t.gender === 'female' ? FEMALE_ICON : MALE_ICON; }
+        function updateDropdown(){
+            const s=document.getElementById('inpTeacher'); const v=s.value; s.innerHTML='<option value="">...</option>';
+            teachers.forEach(t=>{const o=document.createElement('option'); o.value=t.name; o.text=t.name; s.appendChild(o)}); s.value=v;
+        }
+
+        function renderApp(){
+            if(currentFilter) { renderFilter(); return; }
+            const term = document.getElementById('searchBox').value.toLowerCase();
+            const list = acts.filter(a=>a.name.toLowerCase().includes(term)||a.teacher.toLowerCase().includes(term));
+            document.getElementById('activitiesGrid').innerHTML = list.map(a => `
+                <div class="card">
+                    <div class="card-img-grid">${(a.images||[]).slice(0,4).map(u=>`<img src="${u}">`).join('')}</div>
+                    <div class="card-body"><div class="card-title">${a.name}</div><div class="card-info">📅 ${a.date} | 👤 ${a.teacher}</div></div>
+                    <div class="card-footer"><button class="btn-card" onclick="viewReport('${a.id}')">${t('view_report')}</button></div>
+                </div>
+            `).join('');
+            
+            const tMap = {};
+            acts.forEach(a => tMap[a.teacher] = (tMap[a.teacher] || 0) + 1);
+            const profileNames = teachers.map(t => t.name);
+            const allNames = [...new Set([...Object.keys(tMap), ...profileNames])];
+
+            document.getElementById('teachersGrid').innerHTML = allNames.map(name => {
+                const profile = teachers.find(t => t.name === name);
+                let img = MALE_ICON;
+                if (profile) {
+                    if (profile.photo && profile.photo.length > 10) img = profile.photo;
+                    else if (profile.gender === 'female') img = FEMALE_ICON;
+                }
+                return `
+                <div class="teacher-item" onclick="filterT('${name}')">
+                    <img src="${img}" class="avatar-lg">
+                    <div style="font-weight:bold;">${name}</div>
+                    <div style="color:gray; font-size:0.8em;">${tMap[name]||0} ${t('stat_activity')}</div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        window.filterT=(n)=>{currentFilter=n; switchView('archive');};
+        function renderFilter(){
+            document.getElementById('archiveControls').style.display='none'; document.getElementById('filterHeader').style.display='flex';
+            document.getElementById('filterName').innerText=currentFilter;
+            const m=teachers.find(t=>t.name===currentFilter);
+            document.getElementById('filterAvatarContainer').innerHTML=`<img src="${m?getTeacherImg(m):MALE_ICON}" style="width:50px;height:50px;border-radius:50%;object-fit:contain;">`;
+            const list=acts.filter(a=>a.teacher===currentFilter);
+            document.getElementById('activitiesGrid').innerHTML=list.map(a=>`
+                <div class="card">
+                    <div class="card-img-grid">${(a.images||[]).slice(0,4).map(u=>`<img src="${u}">`).join('')}</div>
+                    <div class="card-body"><div class="card-title">${a.name}</div><div class="card-info">📅 ${a.date}</div></div>
+                   <button class="action-btn view" onclick="viewReport('${a.id}')">${t('view_report')}</button>
+                </div>
+            `).join('');
+        }
+        window.clearFilter=()=>{currentFilter=null; document.getElementById('filterHeader').style.display='none'; document.getElementById('archiveControls').style.display='block'; renderApp();}
+        window.switchView=(v)=>{
+            document.getElementById('activitiesGrid').style.display=v==='archive'?'grid':'none';
+            document.getElementById('teachersGrid').style.display=v==='teachers'?'grid':'none';
+            document.getElementById('btn-archive').classList.toggle('active',v==='archive');
+            document.getElementById('btn-teachers').classList.toggle('active',v==='teachers');
+            document.getElementById('archiveControls').style.display=(v==='archive'&&!currentFilter)?'block':'none';
+        };
+        document.getElementById('searchBox').addEventListener('input',renderApp);
+
+        window.openAdminDashboard=()=>{document.getElementById('adminDashboard').style.display='block'; renderAdminContent();};
+        window.closeAdminDashboard=()=>{document.getElementById('adminDashboard').style.display='none';};
+        
+        function renderAdminContent(){
+            if(!user) return;
+            document.getElementById('statActivities').innerText=acts.length; document.getElementById('statTeachers').innerText=teachers.length;
+            document.getElementById('adminActivitiesTable').innerHTML=acts.map(a=>`
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:15px;">${a.name}</td><td>${a.teacher}</td>
+                    <td><button onclick="viewReport('${a.id}')" style="color:blue;">📄</button><button onclick="delItem('${a.id}')" style="color:red; margin-right:10px;">🗑️</button></td>
+                </tr>
+            `).join('');
+            document.getElementById('adminTeachersGrid').innerHTML=teachers.map(t=>`
+                <div class="teacher-item" style="cursor:default;">
+                    <img src="${getTeacherImg(t)}" class="avatar-lg">
+                    <div>${t.name}</div>
+                    <div style="margin-top:10px;"><button onclick="openEditTeacher('${t.id}')">✏️</button><button onclick="delTProfile('${t.name}','${t.id}')" style="color:red;">🗑️</button></div>
+                </div>
+            `).join('');
+        }
+        window.switchAdminTab=(t)=>{
+            document.getElementById('adminActivitiesView').style.display=t==='activities'?'block':'none';
+            document.getElementById('adminTeachersView').style.display=t==='teachers'?'block':'none';
+            document.getElementById('tab-admin-acts').classList.toggle('active',t==='activities');
+            document.getElementById('tab-admin-teach').classList.toggle('active',t==='teachers');
+        }
+
+        window.openAddTeacherModal = () => {
+            document.getElementById('teacherModalTitle').innerText = t('teacher_info');
+            document.getElementById('editTeacherId').value = ""; document.getElementById('editTeacherName').value = "";
+            document.getElementById('editTeacherGender').value = "male"; 
+            document.getElementById('editTeacherPreview').style.display = 'none';
+            document.getElementById('editTeacherPreview').src = ''; 
+            tempTeacherFile = null; removePhotoFlag = false; 
+            document.getElementById('teacherEditModal').classList.add('active');
+        };
+        
+        window.openEditTeacher = (id) => {
+            const t = teachers.find(x => x.id === id); 
+            if(!t) { alert("Teacher data not found in local cache."); return; } 
+            
+            document.getElementById('teacherModalTitle').innerText = t('teacher_info');
+            document.getElementById('editTeacherId').value = id; 
+            document.getElementById('editTeacherName').value = t.name;
+            document.getElementById('editTeacherGender').value = t.gender || "male";
+            const img = document.getElementById('editTeacherPreview');
+            
+            if(t.photo && t.photo.length > 5) { img.src = t.photo; img.style.display = 'block'; } else { img.src = ''; img.style.display = 'none'; }
+            tempTeacherFile = null; removePhotoFlag = false; 
+            document.getElementById('teacherEditModal').classList.add('active');
+        };
+        
+        window.previewTeacherImage = (input) => {
+            if(input.files && input.files[0]) { tempTeacherFile = input.files[0]; removePhotoFlag = false; const img = document.getElementById('editTeacherPreview'); img.src = URL.createObjectURL(tempTeacherFile); img.style.display = 'block'; }
+        };
+        window.removeTeacherPhoto = () => { removePhotoFlag = true; tempTeacherFile = null; document.getElementById('editTeacherPreview').style.display = 'none'; };
+
+        async function upload(f){const d=new FormData();d.append("image",f); const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,{method:"POST",body:d}); if(!r.ok) throw new Error("IMGBB Upload Failed"); const j=await r.json(); return j.data.url;}
+
+        // ** چارەسەری کۆتایی بۆ saveTeacherChanges **
+        window.saveTeacherChanges = async () => {
+            const id = document.getElementById('editTeacherId').value; 
+            const isEditing = !!id; // دڵنیابوونەوە لەوەی ئیدت دەکەین یان نا
+            if(!isEditing) { // ئەگەر زیادکردنی مامۆستای نوێ بێت
+                // لۆجیکی زیادکردنی نوێ ئاساییە، چونکە وێنە کۆنەکان ناگۆڕێت
+            } else if (!id) {
+                alert("System Error: Teacher ID missing."); return; 
+            }
+
+            const btn = document.querySelector('#teacherEditModal button[onclick="saveTeacherChanges()"]');
+            const originalText = btn.innerText;
+            btn.innerText = t('btn_save') + " (چاوەڕوان بە...)"; btn.disabled = true;
+
+            try {
+                const name = document.getElementById('editTeacherName').value.trim(); 
+                const gender = document.getElementById('editTeacherGender').value;
+
+                if(!name) { alert(t('lbl_name') + " پێویستە."); return; }
+                
+                let oldName = "";
+                let oldPhoto = "";
+                
+                if(isEditing) {
+                    const docSnap = await getDoc(doc(db, "teachers", id));
+                    if(docSnap.exists()) {
+                        const d = docSnap.data();
+                        oldName = d.name;
+                        oldPhoto = d.photo || "";
+                    } else {
+                        alert("Error: Original teacher record not found.");
+                        return;
+                    }
+                }
+
+                let photoUrl = oldPhoto; 
+                
+                if(tempTeacherFile) { 
+                    photoUrl = await upload(tempTeacherFile); 
+                } else if (removePhotoFlag) {
+                    photoUrl = "";
+                } else if (isEditing && !tempTeacherFile) {
+                    photoUrl = oldPhoto; // چاککراو: ئەگەر ئیدت بێت و وێنە نەگۆڕابێت، وێنە کۆنەکە دەهێڵینەوە.
+                }
+
+                const data = { name: name, gender: gender, photo: photoUrl }; 
+                
+                if(isEditing) {
+                    await updateDoc(doc(db, "teachers", id), data);
+
+                    if(oldName && oldName !== name) {
+                        const q = query(actRef, where("teacher", "==", oldName));
+                        const snap = await getDocs(q);
+                        if(!snap.empty) {
+                            const batch = writeBatch(db);
+                            snap.forEach(d => batch.update(d.ref, { teacher: name }));
+                            await batch.commit();
+                        }
+                    }
+                } else { // New Teacher
+                    await addDoc(teachRef, data);
+                }
+                
+                alert(t('btn_save') + "کرا!");
+                document.getElementById('teacherEditModal').classList.remove('active');
+
+            } catch(err) {
+                alert(t('error_pass') + ": " + err.message);
+                console.error(err);
+            } finally {
+                btn.innerText = originalText; btn.disabled = false;
+            }
+        }
+
+        window.delTProfile=async(n, id)=>{if(confirm(t('btn_logout') + "?"))await deleteDoc(doc(db,"teachers",id));};
+
+        window.openEditor=()=>{ ['inpName','inpComm','inpTeacher','inpDate','inpNotes'].forEach(i=>document.getElementById(i).value=''); document.getElementById('inpDate').value=new Date().toISOString().split('T')[0]; window.localFiles=[null,null,null,null]; for(let i=0;i<4;i++){const el=document.getElementById('img'+i); el.src=''; window.imgState[i]={s:1,x:0,y:0}; el.style.transform='scale(1)';} enableEdit(true); document.getElementById('editorModal').classList.add('active'); };
+        window.closeEditor=()=>document.getElementById('editorModal').classList.remove('active');
+        window.viewReport=(id)=>{
+            const a=acts.find(x=>x.id===id); if(!a)return;
+            document.getElementById('editorModal').classList.add('active'); document.getElementById('inpName').value=a.name; document.getElementById('inpComm').value=a.committee||''; document.getElementById('inpTeacher').value=a.teacher; document.getElementById('inpDate').value=a.date; document.getElementById('inpNotes').value=a.notes||'';
+            for(let i=0;i<4;i++){ const el=document.getElementById('img'+i); window.imgState[i]={s:1,x:0,y:0}; el.style.transform='scale(1)'; if(a.images&&a.images[i])el.src=a.images[i]; else el.src=''; }
+            enableEdit(!!user);
+        }
+        function enableEdit(ok){ ['inpName','inpComm','inpTeacher','inpDate','inpNotes'].forEach(i=>document.getElementById(i).disabled=!ok); document.getElementById('btnSaveArchive').style.display=ok?'inline-block':'none'; document.querySelectorAll('.controls').forEach(c=>c.style.display=ok?'flex':'none'); }
+
+        window.saveToArchive=async()=>{
+            const n=document.getElementById('inpName').value; const t=document.getElementById('inpTeacher').value; if(!n||!t){alert("زانیاریی پێویست نەنووسراوە.");return;}
+            const btn = document.getElementById('btnSaveArchive');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '... Uploading'; btn.disabled = true;
+
+            try{ 
+                const uploadPromises = window.localFiles.filter(f => f).map(f => upload(f));
+                const u = await Promise.all(uploadPromises);
+
+                await addDoc(actRef,{
+                    name:n,committee:document.getElementById('inpComm').value,
+                    teacher:t,date:document.getElementById('inpDate').value,
+                    notes:document.getElementById('inpNotes').value,
+                    images:u,
+                    createdAt:new Date()
+                }); 
+                alert(t('btn_save') + "کرا!"); 
+                closeEditor(); 
+            }catch(e){
+                alert(t('error_pass') + ": " + e.message);
+                console.error(e);
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        }
+        
+        window.triggerFile=(i)=>{if(document.getElementById('inpName').disabled)return; window.currentSlot=i; document.getElementById('hiddenFileInput').click();}
+        document.getElementById('hiddenFileInput').addEventListener('change',e=>{const f=e.target.files[0]; if(f){window.localFiles[window.currentSlot]=f; const r=new FileReader(); r.onload=ev=>document.getElementById('img'+window.currentSlot).src=ev.target.result; r.readAsDataURL(f);} e.target.value='';});
+        
+        let isD=false,aI=0,sX=0,sY=0,iX=0,iY=0;
+        window.startDrag=(e,i)=>{if(document.getElementById('inpName').disabled)return; isD=true; aI=i; const c=e.touches?e.touches[0]:e; sX=c.clientX; sY=c.clientY; iX=imgState[i].x; iY=imgState[i].y;};
+        window.addEventListener('mousemove',e=>{if(!isD)return; e.preventDefault(); upD(e.clientX-sX,e.clientY-sY)});
+        window.addEventListener('touchmove',e=>{if(!isD)return; upD(e.touches[0].clientX-sX,e.touches[0].clientY-sY)},{passive:false});
+        window.addEventListener('mouseup',()=>isD=false); window.addEventListener('touchend',()=>isD=false);
+        function upD(dx,dy){const s=imgState[aI]; s.x=iX+dx; s.y=iY+dy; tr(aI);}
+        window.adjustZoom=(i,v)=>{imgState[i].s=Math.max(0.1,imgState[i].s+v); tr(i);}
+        function tr(i){const s=imgState[i]; document.getElementById('img'+i).style.transform=`translate(${s.x}px,${s.y}px) scale(${s.s})`;}
+        window.setLayout=(t)=>document.getElementById('imgContainer').className=`p-images ${t}`;
+        window.delItem=async(id)=>{if(confirm(t('btn_logout') + "?"))await deleteDoc(doc(db,"activities",id));};
+
+
+  // ** فەنکشنی چاککراوی داونلۆد (JPEG) بۆ ئەوەی لاپەڕەکە نەبڕێت **
+       // ** فەنکشنی چاککراوی داونلۆد (JPEG) **
+window.downloadJPEG = async () => {
+    const paper = document.getElementById('reportPaper');
+    const notes = document.getElementById('inpNotes'); 
+    let notesDiv = null;
+
+    // --- ١. چاککردنی تێبینی بۆ ئەوەی هەموو دێڕەکان دەرکەون ---
+    if (notes && notes.value.trim() !== "") {
+        notesDiv = document.createElement('div');
+        notesDiv.innerText = notes.value;
+        
+        // پێدانی ستایلی تایبەت بۆ کاتی وێنەگرتن
+        notesDiv.style.width = "100%";
+        notesDiv.style.fontSize = "15px";
+        notesDiv.style.lineHeight = "1.6";
+        notesDiv.style.whiteSpace = "pre-wrap"; 
+        notesDiv.style.wordBreak = "break-word";
+        notesDiv.style.fontFamily = "inherit";
+        notesDiv.style.color = "#333";
+        notesDiv.style.padding = "5px 0";
+        
+        notes.style.display = "none"; 
+        notes.parentNode.insertBefore(notesDiv, notes);
+    }
+
+    // --- ٢. کەمکردنەوەی کاتیی بۆشاییەکان بۆ ئەوەی وێنەکە تێک نەچێت ---
+    const header = paper.querySelector('.report-header');
+    const footer = paper.querySelector('.report-footer');
+    const originalHeaderMargin = header ? header.style.marginBottom : "";
+    const originalFooterMargin = footer ? footer.style.marginTop : "";
+
+    if(header) header.style.marginBottom = "10px";
+    if(footer) footer.style.marginTop = "10px";
+
+    window.scrollTo(0,0);
+
+    // گرتنی وێنەکە بە کوالیتی بەرز
+    html2canvas(paper, { 
+        scale: 2, 
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        width: paper.offsetWidth,
+        height: paper.scrollHeight,
+        windowWidth: paper.scrollWidth,
+        windowHeight: paper.scrollHeight
+    }).then(canvas => {
+        const imgDataURL = canvas.toDataURL('image/jpeg', 0.98); 
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            const previewDiv = document.createElement('div');
+            previewDiv.id = 'mobileDownloadPreview';
+            previewDiv.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; padding:20px; box-sizing:border-box;";
+            
+            previewDiv.innerHTML = `
+                <div style="text-align:center; margin-bottom:15px; font-family:sans-serif;">
+                    <h3 style="margin:0; color:#4ade80;">ڕاپۆرتەکە ئامادەیە</h3>
+                    <p style="font-size:14px; color:#ccc;">دەست لەسەر وێنەکە دابگرە بۆ سەیڤکردن</p>
+                </div>
+                <img src="${imgDataURL}" style="max-width:100%; max-height:75vh; border:1px solid #444; border-radius:10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <button onclick="document.body.removeChild(this.parentElement)" style="margin-top:20px; background:#ff4444; color:white; border:none; padding:12px 40px; border-radius:30px; font-weight:bold; cursor:pointer;">داخستن</button>
+            `;
+            document.body.appendChild(previewDiv);
+        } else {
+            const link = document.createElement('a');
+            const subject = document.getElementById('inpName')?.value || 'Report';
+            link.download = `Report_${subject}.jpeg`;
+            link.href = imgDataURL;
+            link.click();
+        }
+
+        // --- ٣. گەڕاندنەوەی هەموو شتێک بۆ دۆخی ئاسایی دوای تەواوبوون ---
+        if (notes && notesDiv) {
+            notes.style.display = "";
+            notesDiv.remove();
+        }
+        if(header) header.style.marginBottom = originalHeaderMargin;
+        if(footer) footer.style.marginTop = originalFooterMargin;
+    });
+};
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
