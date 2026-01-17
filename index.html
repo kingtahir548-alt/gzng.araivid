@@ -509,14 +509,15 @@
             `).join('');
         }
 
-        window.filterT=(n)=>{currentFilter=n; switchView('archive'); clearFilterBtnShow(); };
-        function clearFilterBtnShow() { document.getElementById('filterHeader').style.display = currentFilter ? 'flex' : 'none'; }
-
+        window.filterT=(n)=>{currentFilter=n; switchView('archive'); renderApp(); }; // Fixed: Added renderApp()
+        
         function renderFilter(){
-            document.getElementById('archiveControls').style.display='none'; document.getElementById('filterHeader').style.display='flex';
+            document.getElementById('archiveControls').style.display='none'; 
+            document.getElementById('filterHeader').style.display='flex';
             document.getElementById('filterName').innerText=currentFilter;
             const m=teachers.find(t=>t.name===currentFilter);
             document.getElementById('filterAvatarContainer').innerHTML=`<img src="${m?getTeacherImg(m):MALE_ICON}" style="width:50px;height:50px;border-radius:50%;object-fit:contain;">`;
+            
             const list=acts.filter(a=>a.teacher===currentFilter);
             document.getElementById('activitiesGrid').innerHTML=list.map(a=>`
                 <div class="card">
