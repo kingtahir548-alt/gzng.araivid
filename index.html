@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-       :root {
+        :root {
             --bg-body: #f0f2f5; --bg-glass: rgba(255, 255, 255, 0.95); --bg-nav: rgba(255, 255, 255, 0.9);
             --bg-card: #ffffff; --text-main: #1e293b; --text-light: #64748b;
             --primary: #6366f1; --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
@@ -49,6 +49,7 @@
 
         .admin-link-btn { background: rgba(128,128,128,0.1); color: var(--text-main); padding: 8px 15px; border-radius: 50px; font-weight: bold; font-size: 0.9em; display: flex; align-items: center; gap: 6px; transition: 0.3s; }
         .admin-link-btn:hover { background: var(--primary); color: white; }
+        .admin-link-btn .i18n-text { font-size: 0.9em; }
 
         .container { max-width: 1200px; margin: 0 auto; width: 95%; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -57,58 +58,14 @@
         .pill { padding: 10px 25px; border-radius: 50px; font-weight: bold; color: var(--text-light); background: var(--bg-card); border: var(--border); transition: 0.3s; display: flex; align-items: center; gap: 5px;}
         .pill.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transform: scale(1.05); border-color: transparent; }
 
-        /* ====== بەشی چاککراوی ڕاپۆرت و لۆگۆ ====== */
-        .report-header { 
-            text-align: center; 
-            margin-bottom: 10px !important; 
-            padding-bottom: 8px !important; 
-            border-bottom: 2px solid #f1f5f9;
-        }
-        .report-header img { 
-            height: 55px !important; /* لۆگۆکە زۆر بچووک کرایەوە */
-            margin-bottom: 5px !important; 
-            object-fit: contain;
-        }
-        .report-header h2 { 
-            font-size: 16px !important; 
-            margin: 2px 0 !important; 
-        }
-        .report-header p { 
-            font-size: 11px !important; 
-            margin: 0 !important; 
-            color: #64748b;
-        }
+        .search-area { max-width: 600px; margin: 0 auto 20px; position: relative; }
+        .search-input { width: 100%; padding: 15px 20px; border-radius: 50px; border: var(--border); background: var(--bg-card); color: var(--text-main); font-size: 1em; box-shadow: var(--shadow); transition: 0.3s; font-family: var(--font-main); }
+        .search-input:focus { transform: scale(1.01); border-color: var(--primary); }
+        
+        .add-activity-btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--primary-gradient); color: white; padding: 12px 25px; border-radius: 50px; font-weight: bold; margin: 0 auto 30px; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3); transition: 0.3s; width: fit-content; }
+        .add-activity-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); }
 
-        .report-footer {
-            margin-top: 10px !important;
-            padding-top: 8px !important;
-            border-top: 2px solid #f1f5f9;
-            text-align: center;
-            font-size: 11px !important;
-        }
-
-        .a4-page { 
-            width: 210mm; 
-            min-height: 297mm; 
-            background: white; 
-            padding: 10mm 15mm !important; /* کەمکردنەوەی بۆشایی دەوری کاغەزەکە */
-            color: black; 
-            direction: rtl; 
-            text-align: right; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-        }
-
-        /* ستایلی نوێ بۆ تێبینییەکان بۆ ئەوەی چەند دێڕ بێت */
-        #inpNotes {
-            width: 100%;
-            min-height: 60px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: inherit;
-        }
-        /* ========================================= */
+        .filter-header { display: none; align-items: center; justify-content: space-between; padding: 15px; margin-bottom: 25px; background: var(--bg-card); border-radius: 15px; border: var(--border); }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .card { background: var(--bg-card); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); border: var(--border); display: flex; flex-direction: column; transition: 0.3s; }
@@ -120,13 +77,25 @@
         .card-body { padding: 15px; flex-grow: 1; background: var(--bg-card); position: relative; z-index: 2; }
         .card-title { font-weight: 800; font-size: 1.1em; margin-bottom: 8px; color: var(--text-main); }
         .card-info { font-size: 0.85em; color: var(--text-light); display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-        
+        .card-footer { padding: 12px 15px; background: rgba(128,128,128,0.03); border-top: 1px solid rgba(128,128,128,0.05); }
+        .btn-card { width: 100%; padding: 10px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: var(--primary); font-weight: bold; transition: 0.2s; }
+        .btn-card:hover { background: var(--primary); color: white; }
+
+        .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
+        .teacher-item { text-align: center; padding: 20px 10px; background: var(--bg-card); border-radius: 20px; transition: 0.3s; border: var(--border); cursor: pointer; box-shadow: var(--shadow); }
+        .teacher-item:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .avatar-lg { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px; object-fit: contain; border: 3px solid var(--primary); padding: 10px; background: var(--bg-body); }
+
+        .admin-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 2000; overflow-y: auto; display: none; }
+        .admin-nav { position: sticky; top: 0; background: #1e293b; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.2s; }
         .modal-overlay.active { display: flex; opacity: 1; }
         
         .editor-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; height: 90vh; }
         .editor-toolbar { background: #1e293b; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; color: white; }
         .paper-area { background: #334155; padding: 20px; border-radius: 15px; flex-grow: 1; overflow: auto; display: flex; justify-content: center; }
+        .a4-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm; color: black; direction: rtl; text-align: right; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
         html[dir="ltr"] .a4-page { text-align: left; direction: ltr; }
         
@@ -826,94 +795,78 @@
 
   // ** فەنکشنی چاککراوی داونلۆد (JPEG) بۆ ئەوەی لاپەڕەکە نەبڕێت **
        // ** فەنکشنی چاککراوی داونلۆد (JPEG) **
-window.downloadJPEG = async () => {
+      window.downloadJPEG = async () => {
     const paper = document.getElementById('reportPaper');
-    const notes = document.getElementById('inpNotes'); 
+    const notes = document.getElementById('inpNotes'); // دۆزینەوەی بۆکسی تێبینی
     let notesDiv = null;
 
-    // --- ١. چاککردنی تێبینی بۆ ئەوەی هەموو دێڕەکان دەرکەون ---
+    // --- لێرەوە گۆڕانکارییەکە دەست پێ دەکات بۆ چارەسەری تێبینی ---
     if (notes && notes.value.trim() !== "") {
         notesDiv = document.createElement('div');
         notesDiv.innerText = notes.value;
-        
-        // پێدانی ستایلی تایبەت بۆ کاتی وێنەگرتن
-        notesDiv.style.width = "100%";
-        notesDiv.style.fontSize = "15px";
-        notesDiv.style.lineHeight = "1.6";
-        notesDiv.style.whiteSpace = "pre-wrap"; 
+        notesDiv.style.width = notes.offsetWidth + "px";
+        notesDiv.style.minHeight = notes.offsetHeight + "px";
+        notesDiv.style.fontSize = "14px";
+        notesDiv.style.whiteSpace = "pre-wrap"; // گرینگترین بەش بۆ ئەوەی دێڕەکان بشکێنێتەوە
         notesDiv.style.wordBreak = "break-word";
         notesDiv.style.fontFamily = "inherit";
+        notesDiv.style.padding = "10px";
         notesDiv.style.color = "#333";
-        notesDiv.style.padding = "5px 0";
         
-        notes.style.display = "none"; 
-        notes.parentNode.insertBefore(notesDiv, notes);
+        notes.style.display = "none"; // شاردنەوەی بۆکسە ئەسڵییەکە
+        notes.parentNode.insertBefore(notesDiv, notes); // پیشاندانی دەقە چاککراوەکە لە شوێنی
     }
-
-    // --- ٢. کەمکردنەوەی کاتیی بۆشاییەکان بۆ ئەوەی وێنەکە تێک نەچێت ---
-    const header = paper.querySelector('.report-header');
-    const footer = paper.querySelector('.report-footer');
-    const originalHeaderMargin = header ? header.style.marginBottom : "";
-    const originalFooterMargin = footer ? footer.style.marginTop : "";
-
-    if(header) header.style.marginBottom = "10px";
-    if(footer) footer.style.marginTop = "10px";
+    // -------------------------------------------------------
 
     window.scrollTo(0,0);
 
-    // گرتنی وێنەکە بە کوالیتی بەرز
     html2canvas(paper, { 
         scale: 2, 
         useCORS: true,
         allowTaint: false,
+        logging: false,
         backgroundColor: "#ffffff",
         width: paper.offsetWidth,
         height: paper.scrollHeight,
         windowWidth: paper.scrollWidth,
         windowHeight: paper.scrollHeight
     }).then(canvas => {
-        const imgDataURL = canvas.toDataURL('image/jpeg', 0.98); 
+        const imgDataURL = canvas.toDataURL('image/jpeg', 0.95); 
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         if (isMobile) {
             const previewDiv = document.createElement('div');
             previewDiv.id = 'mobileDownloadPreview';
-            previewDiv.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; padding:20px; box-sizing:border-box;";
+            previewDiv.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; font-family:sans-serif; padding:20px; box-sizing:border-box;";
             
             previewDiv.innerHTML = `
-                <div style="text-align:center; margin-bottom:15px; font-family:sans-serif;">
-                    <h3 style="margin:0; color:#4ade80;">ڕاپۆرتەکە ئامادەیە</h3>
-                    <p style="font-size:14px; color:#ccc;">دەست لەسەر وێنەکە دابگرە بۆ سەیڤکردن</p>
+                <div style="text-align:center; margin-bottom:15px;">
+                    <h3 style="margin:0;">ڕاپۆرتەکە ئامادەیە</h3>
+                    <p style="font-size:14px; color:#ccc;">دەست لەسەر وێنەکە دابگرە و Save Image هەڵبژێرە</p>
                 </div>
-                <img src="${imgDataURL}" style="max-width:100%; max-height:75vh; border:1px solid #444; border-radius:10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-                <button onclick="document.body.removeChild(this.parentElement)" style="margin-top:20px; background:#ff4444; color:white; border:none; padding:12px 40px; border-radius:30px; font-weight:bold; cursor:pointer;">داخستن</button>
+                <img src="${imgDataURL}" style="max-width:100%; max-height:70vh; border:2px solid white; border-radius:8px;">
+                <button onclick="document.body.removeChild(this.parentElement)" style="margin-top:20px; background:#ff4444; color:white; border:none; padding:12px 30px; border-radius:25px; font-weight:bold; cursor:pointer;">داخستن</button>
             `;
             document.body.appendChild(previewDiv);
         } else {
             const link = document.createElement('a');
             const subject = document.getElementById('inpName')?.value || 'Report';
-            link.download = `Report_${subject}.jpeg`;
+            link.download = `${subject}.jpeg`;
             link.href = imgDataURL;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         }
 
-        // --- ٣. گەڕاندنەوەی هەموو شتێک بۆ دۆخی ئاسایی دوای تەواوبوون ---
+        // --- گەڕاندنەوەی بۆکسەکە بۆ دۆخی ئاسایی دوای وێنەگرتن ---
         if (notes && notesDiv) {
             notes.style.display = "";
             notesDiv.remove();
         }
-        if(header) header.style.marginBottom = originalHeaderMargin;
-        if(footer) footer.style.marginTop = originalFooterMargin;
+        // ---------------------------------------------------
     });
 };
-    </script>
+   </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
